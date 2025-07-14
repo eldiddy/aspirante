@@ -1,0 +1,64 @@
+<launch>
+    <!-- Arguments -->
+    <arg name="paused" default="false" />
+    <arg name="use_sim_time" default="true" />
+    <arg name="gui" default="true" />
+    <arg name="headless" default="true" />
+    <arg name="debug" default="false" />
+    <arg name="model" default="waffle"/>
+    <arg name="x_pos" default="0.0"/>
+    <arg name="y_pos" default="0.0"/>
+    <arg name="z_pos" default="0.0"/>
+    <arg name="map_file" default="$(find aspirante)/map/aspirante_test1.yaml"/>
+    <arg name="move_forward_only" default="false"/>
+    <arg name="cmd_vel_topic" default="/cmd_vel" />
+    <arg name="odom_topic" default="odom" />
+    <arg name="open_rviz" default="true"/>
+
+    <!-- Gazebo simulation -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find aspirante)/worlds/aspirante_test1.world"/>
+        <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="gui" value="true"/>
+        <arg name="headless" value="false"/>
+        <arg name="debug" value="false"/>
+    </include>
+
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find aspirante)/urdf/turtlebot3_$(arg model).urdf.xacro"/>
+
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model turtlebot3 -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+  
+    <node pkg="tf" type="static_transform_publisher" name="base_scan_to_base_footprint" args="0 0 0 0 0 0 base_footprint base_scan 100"/>
+
+    <!-- Launch the map server -->
+    <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"/>
+
+    <!-- AMCL -->
+   <include file="$(find turtlebot3_navigation)/launch/amcl.launch"/>
+
+    <!-- Move Base -->
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+        <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+        <rosparam file="$(find aspirante)/param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find aspirante)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find aspirante)/param/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find aspirante)/param/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find aspirante)/param/move_base_params.yaml" command="load" />
+        <rosparam file="$(find aspirante)/param/dwa_local_planner_params.yaml" command="load" />
+        <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+        <remap from="odom" to="$(arg odom_topic)"/>
+        <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    </node>
+
+    <!-- Run coverage path planner -->
+    <node pkg="aspirante" name="coverage_path_planning_test" type="coverage_path_planning_test.py" output="screen"/>
+    <node pkg="aspirante" name="rviz_path_visualizer" type="rviz_path_visualizer"/>
+
+    <!-- rviz -->
+    <group if="$(arg open_rviz)"> 
+        <node pkg="rviz" type="rviz" name="rviz" required="true"
+            args="-d $(find aspirante)/rviz/rviz_config.rviz"/>
+    </group>
+</launch>

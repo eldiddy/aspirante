@@ -1,0 +1,27 @@
+TrajectoryPlannerROS:
+
+  # Limites de velocidad
+  max_vel_x: 0.18
+  min_vel_x: 0.18
+
+  max_vel_theta:  1.0
+  min_vel_theta: -1.0
+  min_in_place_vel_theta: 1.0
+
+  # Limites de aceleración
+  acc_lim_x: 1.0
+  acc_lim_y: 0.0
+  acc_lim_theta: 0.6
+
+  #  Tolerancia del objetivo
+  xy_goal_tolerance: 0.1
+  yaw_goal_tolerance: 0.05
+
+  # Configuración del robot de tracción diferencial
+  holonomic_robot: false
+
+  # Forward Simulation Parameters
+  sim_time: 0.8
+  vx_samples: 18
+  vtheta_samples: 20
+  sim_granularity: 0.05
