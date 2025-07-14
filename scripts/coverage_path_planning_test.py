@@ -15,9 +15,9 @@ class CoveragePathPlanner:
         
         # Configuration parameters
         self.THRESHOLD = 0.25
-        self.ORIGIN_X = 6
-        self.ORIGIN_Y = 6
-        self.GRID_RESOLUTION = 0.1
+        self.ORIGIN_X = 25
+        self.ORIGIN_Y = 25
+        self.GRID_RESOLUTION = 0.4
         
         # State variables
         self.current_map = None
